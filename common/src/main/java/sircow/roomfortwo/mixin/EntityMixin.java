@@ -20,7 +20,10 @@ public class EntityMixin {
             if (!villager.isSleeping()) return;
 
             AABB modifiedBox = this.bb.inflate(0.175D, 0.1D, 0.175D);
+
             Direction sleepingDirection = villager.getBedOrientation();
+            if (sleepingDirection == null) return;
+
             cir.setReturnValue(modifiedBox.move(sleepingDirection.getStepX() * 0.2D, 0.0D, sleepingDirection.getStepZ() * 0.2D));
         }
     }
