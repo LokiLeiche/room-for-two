@@ -3,6 +3,7 @@ package sircow.roomfortwo.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
 import sircow.roomfortwo.platform.Services;
 
 import java.util.*;
@@ -32,7 +33,7 @@ public final class BedOccupancyTracker {
 
         List<LivingEntity> sleepers = level.getEntitiesOfClass(
                 LivingEntity.class,
-                new net.minecraft.world.phys.AABB(bedPos).inflate(4.0),
+                new AABB(bedPos).inflate(4.0),
                 entity -> entity.isSleeping()
                         && entity.getId() != leavingEntityId
                         && bedPos.equals(Objects.requireNonNull(entity.getSleepingPos().orElse(null)))
