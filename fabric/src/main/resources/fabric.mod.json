@@ -17,7 +17,11 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "sircow.roomfortwo.RoomForTwo"
+            "sircow.roomfortwo.RoomForTwo",
+            "sircow.roomfortwo.network.FabricNetworkRegistry"
+        ],
+        "client": [
+            "sircow.roomfortwo.network.FabricNetworkRegistry"
         ]
     },
     "mixins": [
@@ -27,10 +31,7 @@
     "depends": {
         "fabricloader": ">=0.19.0",
         "fabric-api": "*",
-        "minecraft": [
-            "1.21",
-            "1.21.1"
-        ],
+        "minecraft": "1.21.11",
         "java": ">=${java_version}"
     },
     "custom": {

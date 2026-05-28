@@ -37,7 +37,7 @@ public class BedBlockMixin {
         }
 
         player.startSleepInBed(bedPos).ifLeft(problem -> {
-            if (problem.getMessage() != null) player.displayClientMessage(problem.getMessage(), true);
+            if (problem.message() != null) player.displayClientMessage(problem.message(), true);
         });
 
         cir.setReturnValue(InteractionResult.SUCCESS);
