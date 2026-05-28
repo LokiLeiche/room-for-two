@@ -2,11 +2,10 @@ package sircow.roomfortwo.mixin;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.phys.AABB;
 import org.joml.Quaternionf;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,53 +14,38 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import sircow.roomfortwo.platform.Services;
+import sircow.roomfortwo.util.BedOccupancyTracker;
 
-import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 
 @Mixin(Camera.class)
 public abstract class CameraMixin {
     @Shadow @Final private Quaternionf rotation;
     @Shadow private Entity entity;
-
     @Shadow protected abstract void move(float forwards, float up, float right);
 
     @Inject(method = "setup", at = @At("TAIL"))
     private void roomfortwo$adjustSleepCamera(BlockGetter blockGetter, Entity entity, boolean detached, boolean inverseView, float partialTick, CallbackInfo ci) {
         if (Objects.equals(Services.PLATFORM.getPlatformName(), "Forge")) return;
-        if (!(this.entity instanceof LivingEntity livingEntity)) return;
-        if (!livingEntity.isSleeping()) return;
+        if (!(this.entity instanceof LivingEntity living)) return;
+        if (!living.isSleeping()) return;
         if (!Minecraft.getInstance().options.getCameraType().isFirstPerson()) return;
 
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) return;
+        Direction dir = living.getBedOrientation();
+        if (dir == null) return;
 
-        AABB bedArea = new AABB(
-                livingEntity.getX() - 1.5, livingEntity.getY() - 1.0, livingEntity.getZ() - 1.5,
-                livingEntity.getX() + 1.5, livingEntity.getY() + 1.0, livingEntity.getZ() + 1.5
-        );
+        float baseYaw = dir.toYRot();
+        int slot = BedOccupancyTracker.getSlot(this.entity.getId());
 
-        List<LivingEntity> occupants = level.getEntitiesOfClass(LivingEntity.class, bedArea, LivingEntity::isSleeping);
-        occupants.sort(Comparator.comparingInt(LivingEntity::getId));
+        rotation.identity();
+        rotation.rotateY((float) Math.toRadians(baseYaw));
 
-        int index = 0;
-        for (int i = 0; i < occupants.size(); i++) {
-            if (occupants.get(i).getId() == livingEntity.getId()) {
-                index = i;
-                break;
-            }
-        }
+        if (slot % 2 == 0) rotation.rotateZ((float) Math.toRadians(-90.0));
+        else rotation.rotateZ((float) Math.toRadians(90.0));
 
-        if ((index & 1) == 0) {
-            rotation.rotateY((float) Math.toRadians(180.0));
-            rotation.rotateZ((float) Math.toRadians(-90.0));
-            rotation.rotateX((float) Math.toRadians(-90.0));
-        }
-        else {
-            rotation.rotateZ((float) Math.toRadians(90.0));
-            rotation.rotateX((float) Math.toRadians(90.0));
-        }
+        if (dir == Direction.NORTH || dir == Direction.SOUTH) rotation.rotateX((float) Math.toRadians(90.0));
+        if (dir == Direction.EAST || dir == Direction.WEST) rotation.rotateX((float) Math.toRadians(-90.0));
+
         move(-0.75F, 0.1F, 0.0F);
     }
 }

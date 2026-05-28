@@ -6,6 +6,7 @@
   "mixins": [
     "BedBlockMixin",
     "EntityMixin",
+    "LivingEntityMixin",
     "VillagerMixin"
   ],
   "client": [
