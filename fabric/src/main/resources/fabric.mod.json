@@ -17,7 +17,11 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-            "sircow.roomfortwo.RoomForTwo"
+            "sircow.roomfortwo.RoomForTwo",
+            "sircow.roomfortwo.network.FabricNetworkRegistry"
+        ],
+        "client": [
+            "sircow.roomfortwo.network.FabricNetworkRegistry"
         ]
     },
     "mixins": [

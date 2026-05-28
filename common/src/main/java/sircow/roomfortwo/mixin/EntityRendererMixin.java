@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import sircow.roomfortwo.interfaces.RoomForTwoRenderState;
 
 @Mixin(EntityRenderer.class)
 public class EntityRendererMixin {
@@ -36,5 +37,10 @@ public class EntityRendererMixin {
 
             if (localPlayer != null && entity.getId() != localPlayer.getId()) state.nameTag = null;
         }
+    }
+
+    @Inject(method = "extractRenderState", at = @At("TAIL"))
+    private void roomfortwo$storeEntityId(Entity entity, EntityRenderState state, float partialTicks, CallbackInfo ci) {
+        ((RoomForTwoRenderState) state).roomfortwo$setEntityId(entity.getId());
     }
 }

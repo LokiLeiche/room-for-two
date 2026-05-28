@@ -6,11 +6,13 @@
   "mixins": [
     "BedBlockMixin",
     "EntityMixin",
+    "LivingEntityMixin",
     "VillagerMixin"
   ],
   "client": [
     "CameraMixin",
     "EntityRendererMixin",
+    "EntityRenderStateMixin",
     "LivingEntityRendererMixin"
   ],
   "server": [],
