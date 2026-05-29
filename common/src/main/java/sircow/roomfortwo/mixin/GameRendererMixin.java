@@ -3,19 +3,15 @@ package sircow.roomfortwo.mixin;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.AABB;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Comparator;
-import java.util.List;
+import sircow.roomfortwo.util.BedOccupancyTracker;
 
 @Mixin(GameRenderer.class)
 public class GameRendererMixin {
@@ -28,32 +24,15 @@ public class GameRendererMixin {
         if (!livingEntity.isSleeping()) return;
         if (!minecraft.options.getCameraType().isFirstPerson()) return;
 
-        ClientLevel level = minecraft.level;
-        if (level == null) return;
+        Direction dir = livingEntity.getBedOrientation();
+        if (dir == null) return;
 
-        AABB bedArea = new AABB(
-                livingEntity.getX() - 1.5, livingEntity.getY() - 1.0, livingEntity.getZ() - 1.5,
-                livingEntity.getX() + 1.5, livingEntity.getY() + 1.0, livingEntity.getZ() + 1.5
-        );
+        int slot = BedOccupancyTracker.getSlot(livingEntity.getId());
 
-        List<LivingEntity> occupants = level.getEntitiesOfClass(LivingEntity.class, bedArea, LivingEntity::isSleeping);
-        occupants.sort(Comparator.comparingInt(LivingEntity::getId));
-
-        int index = 0;
-        for (int i = 0; i < occupants.size(); i++) {
-            if (occupants.get(i).getId() == livingEntity.getId()) {
-                index = i;
-                break;
-            }
-        }
-
-        Direction direction = livingEntity.getBedOrientation();
-        if (direction == null) return;
-
-        poseStack.mulPose(Axis.YP.rotationDegrees(direction.toYRot() - 180.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(dir.toYRot() - 180.0F));
 
         float xRotateL, yRotateL, zRotateL, xRotateR, yRotateR, zRotateR;
-        switch (direction) {
+        switch (dir) {
             case NORTH -> {
                 xRotateR = 90.0F;
                 yRotateR = 0.0F;
@@ -93,11 +72,21 @@ public class GameRendererMixin {
             }
         }
 
-        if ((index & 1) == 0) {
+        boolean side = slot % 2 == 0;
+
+        if (side) {
             poseStack.mulPose(Axis.XP.rotationDegrees(xRotateR));
             poseStack.mulPose(Axis.YP.rotationDegrees(yRotateR));
             poseStack.mulPose(Axis.ZP.rotationDegrees(zRotateR));
-            switch (direction) {
+        }
+        else {
+            poseStack.mulPose(Axis.XP.rotationDegrees(xRotateL));
+            poseStack.mulPose(Axis.YP.rotationDegrees(yRotateL));
+            poseStack.mulPose(Axis.ZP.rotationDegrees(zRotateL));
+        }
+
+        if (side) {
+            switch (dir) {
                 case NORTH -> poseStack.translate(-0.5D, -0.1D, 0.0D);
                 case SOUTH -> poseStack.translate(0.5D, -0.1D, 0.0D);
                 case WEST -> poseStack.translate(0.0D, -0.1D, 0.5D);
@@ -105,10 +94,7 @@ public class GameRendererMixin {
             }
         }
         else {
-            poseStack.mulPose(Axis.XP.rotationDegrees(xRotateL));
-            poseStack.mulPose(Axis.YP.rotationDegrees(yRotateL));
-            poseStack.mulPose(Axis.ZP.rotationDegrees(zRotateL));
-            switch (direction) {
+            switch (dir) {
                 case NORTH -> poseStack.translate(0.75D, -0.1D, 0.0D);
                 case SOUTH -> poseStack.translate(-0.75D, -0.1D, 0.0D);
                 case WEST -> poseStack.translate(0.0D, -0.1D, -0.75D);

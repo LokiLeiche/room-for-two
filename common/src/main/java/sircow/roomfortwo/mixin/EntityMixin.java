@@ -12,8 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Entity.class)
 public class EntityMixin {
-    @Shadow
-    private AABB bb;
+    @Shadow private AABB bb;
 
     @Inject(method = "getBoundingBox", at = @At("HEAD"), cancellable = true)
     private void roomfortwo$getExpandedSleepingBox(CallbackInfoReturnable<AABB> cir) {
@@ -23,7 +22,7 @@ public class EntityMixin {
             AABB modifiedBox = this.bb.inflate(0.175D, 0.075D, 0.175D);
 
             Direction sleepingDirection = villager.getBedOrientation();
-            if (sleepingDirection == null) return;
+            if (sleepingDirection == null || !sleepingDirection.getAxis().isHorizontal()) return;
 
             Direction sidewaysDirection = sleepingDirection.getCounterClockWise();
 
