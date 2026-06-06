@@ -1,46 +1,16 @@
 package sircow.roomfortwo.mixin;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BedPart;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.level.block.state.properties.Property;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(BedBlock.class)
 public class BedBlockMixin {
-    @Inject(method = "use", at = @At("HEAD"), cancellable = true)
-    private void roomfortwo$use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
-        if (level.isClientSide()) {
-            cir.setReturnValue(InteractionResult.CONSUME);
-            return;
-        }
-
-        BlockPos bedPos = pos;
-        BlockState bedState = state;
-
-        if (bedState.getValue(BlockStateProperties.BED_PART) != BedPart.HEAD) {
-            bedPos = bedPos.relative(bedState.getValue(BedBlock.FACING));
-            bedState = level.getBlockState(bedPos);
-
-            if (!bedState.is((BedBlock) (Object) this)) {
-                cir.setReturnValue(InteractionResult.CONSUME);
-                return;
-            }
-        }
-
-        player.startSleepInBed(bedPos).ifLeft(problem -> {
-            if (problem.getMessage() != null) player.displayClientMessage(problem.getMessage(), true);
-        });
-
-        cir.setReturnValue(InteractionResult.SUCCESS);
+    @Redirect(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getValue(Lnet/minecraft/world/level/block/state/properties/Property;)Ljava/lang/Comparable;", ordinal = 3))
+    private Comparable<?> roomfortwo$use(BlockState state, Property<?> property) {
+        return false;
     }
 }
