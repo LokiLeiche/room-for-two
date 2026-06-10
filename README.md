@@ -1,6 +1,11 @@
-# 💤 Room for Two
+# 💤 Room For Two
 - Adds the ability for multiple players to sleep in a bed.
 - When there are more than two players, they start to stack on top of each other!
+- Changes the camera view while sleeping in a bed.
+
+| Player              | Villager              |
+|---------------------|:---------------------:|
+| ![Player in a bed looking at the viewer](https://cdn.modrinth.com/data/YZlvzIFq/images/35278d3189696b8582108150ad6e97f59b45a3b8.png)| ![Minecraft villager in a bed looking at the viewer](https://cdn.modrinth.com/data/YZlvzIFq/images/8c52944f03d501f19c4d2bf6ffec57e87887095e.png)|
 
 ## 🖥️ Download
 | Modrinth | CurseForge |
