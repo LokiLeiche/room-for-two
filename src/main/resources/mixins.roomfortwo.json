@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "sircow.roomfortwo.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "${mixin_refmap}",
+  "target": "@env(DEFAULT)",
+  "mixins": [
+    "BlockBedMixin",
+    "EntityPlayerMixin"
+  ],
+  "server": [],
+  "client": [
+    "RenderManagerMixin",
+    "RenderPlayerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
