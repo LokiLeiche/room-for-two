@@ -36,7 +36,7 @@ public final class BedOccupancyTracker {
                 new AABB(bedPos).inflate(4.0),
                 entity -> entity.isSleeping()
                         && entity.getId() != leavingEntityId
-                        && bedPos.equals(Objects.requireNonNull(entity.getSleepingPos().orElse(null)))
+                        && entity.getSleepingPos().map(bedPos::equals).orElse(false)
         );
 
         Set<Integer> currentSleeperIds = new HashSet<>();
