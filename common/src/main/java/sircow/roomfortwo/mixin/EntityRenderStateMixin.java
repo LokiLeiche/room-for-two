@@ -7,8 +7,7 @@ import sircow.roomfortwo.interfaces.RoomForTwoRenderState;
 
 @Mixin(EntityRenderState.class)
 public class EntityRenderStateMixin implements RoomForTwoRenderState {
-    @Unique
-    private int roomfortwo$entityId;
+    @Unique private int roomfortwo$entityId;
 
     @Override
     public int roomfortwo$getEntityId() {
