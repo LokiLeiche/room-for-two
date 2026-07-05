@@ -1,10 +1,14 @@
 package sircow.roomfortwo.util;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import sircow.roomfortwo.platform.Services;
+import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,7 +32,7 @@ public final class BedOccupancyTracker {
         clientSlotCache.remove(entityId);
     }
 
-    public static void updateBedOccupancy(ServerLevel level, BlockPos bedPos, int leavingEntityId) {
+    public static void updateBedOccupancy(ServerLevel level, BlockPos bedPos, int leavingEntityId, int enteringEntityId, Vec3 enteringPos) {
         if (bedPos == null) return;
 
         List<LivingEntity> sleepers = level.getEntitiesOfClass(
@@ -38,6 +42,23 @@ public final class BedOccupancyTracker {
                         && entity.getId() != leavingEntityId
                         && entity.getSleepingPos().map(bedPos::equals).orElse(false)
         );
+
+        boolean isEnteringLeftSide = false;
+
+        if (enteringPos != null) {
+            BlockState bedState = level.getBlockState(bedPos);
+            Direction facing = bedState.getValue(BedBlock.FACING);
+
+            final float middleX = bedPos.getX() + 0.5f;
+            final float middleZ = bedPos.getZ() + 0.5f;
+            final float playerX = (float) enteringPos.get(Direction.Axis.X);
+            final float playerZ = (float) enteringPos.get(Direction.Axis.Z);
+
+            isEnteringLeftSide = (facing == Direction.NORTH && playerX < middleX)
+                    || (facing == Direction.SOUTH && playerX > middleX)
+                    || (facing == Direction.WEST && playerZ > middleZ)
+                    || (facing == Direction.EAST && playerZ < middleZ);
+        }
 
         Set<Integer> currentSleeperIds = new HashSet<>();
         for (LivingEntity sleeper : sleepers) {
@@ -52,21 +73,24 @@ public final class BedOccupancyTracker {
             }
         }
 
-        for (LivingEntity sleeper : sleepers) {
-            int id = sleeper.getId();
-            if (!bedOrder.contains(id)) {
-                boolean addedInBetween = false;
-                for (int i=0; i<bedOrder.size(); i++) {
-                    final int elem = bedOrder.get(i);
-                    if (elem == -1) {
-                        bedOrder.set(i, id);
+        if (enteringPos != null) {
+            boolean addedInBetween = false;
+            for (int i=0; i<bedOrder.size(); i++) {
+                final int elem = bedOrder.get(i);
+                if (elem == -1) {
+                    if ((!isEnteringLeftSide && i % 2 == 0) || (isEnteringLeftSide && i % 2 == 1)) {
+                        bedOrder.set(i, enteringEntityId);
                         addedInBetween = true;
                         break;
                     }
                 }
-                if (!addedInBetween) {
-                    bedOrder.add(id);
+            }
+
+            if (!addedInBetween) {
+                if (bedOrder.size() % 2 != (isEnteringLeftSide ? 1 : 0)) {
+                    bedOrder.add(-1);
                 }
+                bedOrder.add(enteringEntityId);
             }
         }
 
