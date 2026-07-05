@@ -45,12 +45,28 @@ public final class BedOccupancyTracker {
         }
 
         List<Integer> bedOrder = serverBedOrders.computeIfAbsent(bedPos, k -> new ArrayList<>());
-        bedOrder.removeIf(id -> id == leavingEntityId || !currentSleeperIds.contains(id));
+        for (int i=0; i <bedOrder.size(); i++) {
+            int id = bedOrder.get(i);
+            if (id == leavingEntityId || !currentSleeperIds.contains(id)) {
+                bedOrder.set(i, -1);
+            }
+        }
 
         for (LivingEntity sleeper : sleepers) {
             int id = sleeper.getId();
             if (!bedOrder.contains(id)) {
-                bedOrder.add(id);
+                boolean addedInBetween = false;
+                for (int i=0; i<bedOrder.size(); i++) {
+                    final int elem = bedOrder.get(i);
+                    if (elem == -1) {
+                        bedOrder.set(i, id);
+                        addedInBetween = true;
+                        break;
+                    }
+                }
+                if (!addedInBetween) {
+                    bedOrder.add(id);
+                }
             }
         }
 
