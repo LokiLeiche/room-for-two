@@ -73,6 +73,24 @@ public final class BedOccupancyTracker {
             }
         }
 
+        // if a player left who was previously in a slot BELOW a different player,
+        // shift the entire slots for that side down to avoid someone flying in the air
+        for (int i=0; i<bedOrder.size(); i++) {
+            if (bedOrder.get(i) != -1) continue;
+
+            for (int x=i+2; x<bedOrder.size(); x+=2) {
+                bedOrder.set(x-2, bedOrder.get(x));
+                bedOrder.set(x, -1);
+            }
+        }
+
+        // clean up empty back slots
+        for (int i=bedOrder.size()-1; i>-1; i--) {
+            if (bedOrder.get(i) == -1) {
+                bedOrder.remove(i);
+            } else break;
+        }
+
         if (enteringPos != null) {
             boolean addedInBetween = false;
             for (int i=0; i<bedOrder.size(); i++) {
