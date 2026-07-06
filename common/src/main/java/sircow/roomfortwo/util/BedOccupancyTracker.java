@@ -5,13 +5,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.BedBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import sircow.roomfortwo.platform.Services;
-import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public final class BedOccupancyTracker {
     private static final Map<Integer, Integer> clientSlotCache = new ConcurrentHashMap<>();
@@ -49,8 +50,8 @@ public final class BedOccupancyTracker {
             BlockState bedState = level.getBlockState(bedPos);
             Direction facing = bedState.getValue(BedBlock.FACING);
 
-            final float middleX = bedPos.getX() + 0.5f;
-            final float middleZ = bedPos.getZ() + 0.5f;
+            final float middleX = bedPos.getX() + 0.5F;
+            final float middleZ = bedPos.getZ() + 0.5F;
             final float playerX = (float) enteringPos.get(Direction.Axis.X);
             final float playerZ = (float) enteringPos.get(Direction.Axis.Z);
 
@@ -60,13 +61,10 @@ public final class BedOccupancyTracker {
                     || (facing == Direction.EAST && playerZ < middleZ);
         }
 
-        Set<Integer> currentSleeperIds = new HashSet<>();
-        for (LivingEntity sleeper : sleepers) {
-            currentSleeperIds.add(sleeper.getId());
-        }
+        Set<Integer> currentSleeperIds = sleepers.stream().map(LivingEntity::getId).collect(Collectors.toSet());
 
         List<Integer> bedOrder = serverBedOrders.computeIfAbsent(bedPos, k -> new ArrayList<>());
-        for (int i=0; i <bedOrder.size(); i++) {
+        for (int i = 0; i < bedOrder.size(); i++) {
             int id = bedOrder.get(i);
             if (id == leavingEntityId || !currentSleeperIds.contains(id)) {
                 bedOrder.set(i, -1);
@@ -75,25 +73,26 @@ public final class BedOccupancyTracker {
 
         // if a player left who was previously in a slot BELOW a different player,
         // shift the entire slots for that side down to avoid someone flying in the air
-        for (int i=0; i<bedOrder.size(); i++) {
+        for (int i = 0; i < bedOrder.size(); i++) {
             if (bedOrder.get(i) != -1) continue;
 
-            for (int x=i+2; x<bedOrder.size(); x+=2) {
-                bedOrder.set(x-2, bedOrder.get(x));
+            for (int x = i + 2; x < bedOrder.size(); x += 2) {
+                bedOrder.set(x - 2, bedOrder.get(x));
                 bedOrder.set(x, -1);
             }
         }
 
         // clean up empty back slots
-        for (int i=bedOrder.size()-1; i>-1; i--) {
+        for (int i = bedOrder.size() - 1; i > -1; i--) {
             if (bedOrder.get(i) == -1) {
                 bedOrder.remove(i);
-            } else break;
+            }
+            else break;
         }
 
         if (enteringPos != null) {
             boolean addedInBetween = false;
-            for (int i=0; i<bedOrder.size(); i++) {
+            for (int i = 0; i < bedOrder.size(); i++) {
                 final int elem = bedOrder.get(i);
                 if (elem == -1) {
                     if ((!isEnteringLeftSide && i % 2 == 0) || (isEnteringLeftSide && i % 2 == 1)) {

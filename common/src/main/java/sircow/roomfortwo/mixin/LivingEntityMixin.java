@@ -40,9 +40,7 @@ public abstract class LivingEntityMixin {
     private void roomfortwo$onStopSleeping(CallbackInfo ci) {
         LivingEntity self = (LivingEntity) (Object) this;
         if (!self.level().isClientSide() && self.level() instanceof ServerLevel serverLevel) {
-            getSleepingPos().ifPresent(pos -> {
-                BedOccupancyTracker.updateBedOccupancy(serverLevel, pos, self.getId(), -1, null);
-            });
+            getSleepingPos().ifPresent(pos -> BedOccupancyTracker.updateBedOccupancy(serverLevel, pos, self.getId(), -1, null));
         }
     }
 }
